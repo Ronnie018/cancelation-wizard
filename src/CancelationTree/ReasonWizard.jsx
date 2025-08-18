@@ -1,0 +1,152 @@
+import React, { useState, useEffect } from "react";
+
+// Tipos de planos, categorias e providers
+const planTypes = ["Básico", "Padrão", "Platinum"];
+const planCategories = ["Mensal", "Anual"];
+const providers = ["DTC", "IAP", "Provider"];
+
+const ReasonWizard = ({ reason, cleanState }) => {
+  const [step, setStep] = useState(0);
+  const [planType, setPlanType] = useState("");
+  const [planCategory, setPlanCategory] = useState("");
+  const [provider, setProvider] = useState("");
+  const [rules, setRules] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("retentionRules");
+    if (stored) setRules(JSON.parse(stored));
+  }, []);
+
+  useEffect(() => {
+    if (step === 3) {
+      const filtered = rules
+        .filter(rule => {
+          const reasonMatch = !rule.reason || rule.reason === reason;
+          const typeMatch = !rule.planType || rule.planType === planType;
+          const categoryMatch = !rule.planCategory || rule.planCategory === planCategory;
+          const providerMatch = !rule.provider || rule.provider === provider;
+          return reasonMatch && typeMatch && categoryMatch && providerMatch;
+        })
+        .map(rule => {
+          if (rule.suggestion.toLowerCase().includes("código promocional") && provider !== "DTC") {
+            return null;
+          }
+          return rule.suggestion;
+        })
+        .filter(Boolean);
+
+      setSuggestions(filtered);
+    }
+  }, [step, reason, planType, planCategory, provider, rules]);
+
+
+  const getButtonClasses = (isSelected) =>
+    `p-3 rounded-lg border transition font-medium ${
+      isSelected
+        ? "bg-gray-600 border-white text-white"
+        : "bg-black border-gray-700 text-gray-200 hover:bg-gray-700 hover:text-white"
+    }`;
+
+  return (
+    <div className="bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-3xl text-white space-y-6">
+      <h2 className="text-2xl font-bold text-white">Retention Wizard</h2>
+
+      {step === 0 && (
+        <div className="space-y-3">
+          <p>Selecione o tipo de plano:</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {planTypes.map(type => (
+              <button
+                key={type}
+                className={getButtonClasses(planType === type)}
+                onClick={() => { setPlanType(type); setStep(1); }}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {step === 1 && (
+        <div className="space-y-3">
+          <p>Selecione a categoria do plano:</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {planCategories.map(cat => (
+              <button
+                key={cat}
+                className={getButtonClasses(planCategory === cat)}
+                onClick={() => { setPlanCategory(cat); setStep(2); }}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {step === 2 && (
+        <div className="space-y-3">
+          <p>Selecione o provider:</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {providers.map(p => (
+              <button
+                key={p}
+                className={getButtonClasses(provider === p)}
+                onClick={() => setProvider(p)}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+          <button
+            className={`mt-3 px-4 py-2 rounded transition font-medium ${
+              provider
+                ? "bg-gray-700 hover:bg-gray-600 text-white"
+                : "bg-gray-900 text-gray-400 cursor-not-allowed"
+            }`}
+            onClick={() => setStep(3)}
+            disabled={!provider}
+          >
+            Confirmar Provider
+          </button>
+        </div>
+      )}
+
+      {step === 3 && (
+        <div className="space-y-4">
+          <p><strong>Motivo:</strong> {reason}</p>
+          <p><strong>Plano:</strong> {planType} ({planCategory})</p>
+          <p><strong>Provider:</strong> {provider}</p>
+
+          <div className="bg-black p-4 rounded-lg space-y-2">
+            <p className="font-semibold">Sugestões de retenção:</p>
+            {suggestions.length > 0 ? (
+              <ul className="list-disc list-inside space-y-1">
+                {suggestions.map((opt, idx) => (
+                  <li key={idx}>{opt}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-400">Nenhuma sugestão disponível.</p>
+            )}
+          </div>
+
+          <button
+            className="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-700 hover:bg-gray-700 transition font-medium"
+            onClick={() => {
+              cleanState();
+              setStep(0);
+              setProvider("");
+            }}
+          >
+            Reiniciar Wizard
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ReasonWizard;
