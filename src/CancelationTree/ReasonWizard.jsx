@@ -12,11 +12,22 @@ const ReasonWizard = ({ reason, cleanState }) => {
   const [provider, setProvider] = useState("");
   const [rules, setRules] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
+  const [reasonDetails, setReasonDetails] = useState("");
 
   useEffect(() => {
-    const stored = localStorage.getItem("retentionRules");
-    if (stored) setRules(JSON.parse(stored));
-  }, []);
+    // carregar regras
+    const storedRules = localStorage.getItem("retentionRules");
+    if (storedRules) setRules(JSON.parse(storedRules));
+
+    // carregar detalhes do motivo
+    const storedReasons = localStorage.getItem("cancellationReasons");
+    if (storedReasons) {
+      const parsed = JSON.parse(storedReasons);
+      const found = parsed.find(r => r.reason === reason);
+      setReasonDetails(found?.details || "");
+    }
+  }, [reason]);
+
 
   useEffect(() => {
     if (step === 3) {
@@ -29,7 +40,10 @@ const ReasonWizard = ({ reason, cleanState }) => {
           return reasonMatch && typeMatch && categoryMatch && providerMatch;
         })
         .map(rule => {
-          if (rule.suggestion.toLowerCase().includes("código promocional") && provider !== "DTC") {
+          if (
+            rule.suggestion.toLowerCase().includes("código promocional") &&
+            provider !== "DTC"
+          ) {
             return null;
           }
           return rule.suggestion;
@@ -39,7 +53,6 @@ const ReasonWizard = ({ reason, cleanState }) => {
       setSuggestions(filtered);
     }
   }, [step, reason, planType, planCategory, provider, rules]);
-
 
   const getButtonClasses = (isSelected) =>
     `p-3 rounded-lg border transition font-medium ${
@@ -52,15 +65,34 @@ const ReasonWizard = ({ reason, cleanState }) => {
     <div className="bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-3xl text-white space-y-6">
       <h2 className="text-2xl font-bold text-white">Retention Wizard</h2>
 
+      {/* Observação do motivo */}
+      {reason && (
+        <>
+
+        <p className="text-lg font-semibold text-blue-200">
+            Motivo: <span className="text-white">{reason}</span>
+          </p>
+
+          {reasonDetails && (
+            <div className="bg-yellow-200 p-4 rounded-lg text-gray-800 break-words whitespace-pre-wrap max-w-full">
+              {reasonDetails}
+            </div>
+          )}
+          </>
+      )}
+
       {step === 0 && (
         <div className="space-y-3">
           <p>Selecione o tipo de plano:</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {planTypes.map(type => (
+            {planTypes.map((type) => (
               <button
                 key={type}
                 className={getButtonClasses(planType === type)}
-                onClick={() => { setPlanType(type); setStep(1); }}
+                onClick={() => {
+                  setPlanType(type);
+                  setStep(1);
+                }}
               >
                 {type}
               </button>
@@ -73,11 +105,14 @@ const ReasonWizard = ({ reason, cleanState }) => {
         <div className="space-y-3">
           <p>Selecione a categoria do plano:</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {planCategories.map(cat => (
+            {planCategories.map((cat) => (
               <button
                 key={cat}
                 className={getButtonClasses(planCategory === cat)}
-                onClick={() => { setPlanCategory(cat); setStep(2); }}
+                onClick={() => {
+                  setPlanCategory(cat);
+                  setStep(2);
+                }}
               >
                 {cat}
               </button>
@@ -90,7 +125,7 @@ const ReasonWizard = ({ reason, cleanState }) => {
         <div className="space-y-3">
           <p>Selecione o provider:</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {providers.map(p => (
+            {providers.map((p) => (
               <button
                 key={p}
                 className={getButtonClasses(provider === p)}
@@ -116,9 +151,15 @@ const ReasonWizard = ({ reason, cleanState }) => {
 
       {step === 3 && (
         <div className="space-y-4">
-          <p><strong>Motivo:</strong> {reason}</p>
-          <p><strong>Plano:</strong> {planType} ({planCategory})</p>
-          <p><strong>Provider:</strong> {provider}</p>
+          <p>
+            <strong>Motivo:</strong> {reason}
+          </p>
+          <p>
+            <strong>Plano:</strong> {planType} ({planCategory})
+          </p>
+          <p>
+            <strong>Provider:</strong> {provider}
+          </p>
 
           <div className="bg-black p-4 rounded-lg space-y-2">
             <p className="font-semibold">Sugestões de retenção:</p>

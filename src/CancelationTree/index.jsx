@@ -35,18 +35,17 @@ export default () => {
   }
 
   // Estado inicial / aplicável
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-black px-4 py-8">
-      <div className="w-full max-w-3xl">
-        {isAplicable === null ? (
-          <IsApplicable
-            setIsAplicable={setIsAplicable}
-            setReason={setReason}
-          />
-        ) : (
-          <ReasonWizard reason={reason} cleanState={cleanState} />
-        )}
-      </div>
+return (
+  <div className="min-h-screen flex items-start justify-center bg-black px-2 py-8">
+    <div className="w-full max-w-5xl lg:max-w-6xl">
+      {isAplicable === null ? (
+        <IsApplicable
+          setIsAplicable={setIsAplicable}
+          setReason={setReason}
+        />
+      ) : (
+        <ReasonWizard reason={reason} cleanState={cleanState} />
+      )}
     </div>
-  )
-}
+  </div>
+)}

@@ -1,28 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const defaultRules = [
-  {
-    reason: "Not enough content",
-    planType: "Básico",
-    planCategory: "Mensal",
-    provider: null,
-    suggestion: "Oferecer período de trial em plano superior para testar funcionalidades extras (ex: download de conteúdo)"
-  },
-  {
-    reason: "Not enough content",
-    planType: null,
-    planCategory: null,
-    provider: null,
-    suggestion: "Verificar conteúdos assistidos pelo sistema"
-  },
-  {
-    reason: null,
-    planType: null,
-    planCategory: "Mensal",
-    provider: "DTC",
-    suggestion: "Oferecer código promocional de acordo com o plano: Básico/Padrão 50%, Platinum 20%"
-  }
-];
+const defaultRules = [];
 
 const planTypes = ["Básico", "Padrão", "Platinum"];
 const planCategories = ["Mensal", "Anual"];
@@ -30,6 +8,7 @@ const providers = ["DTC", "IAP", "Provider"];
 
 const RuleEditor = () => {
   const [rules, setRules] = useState([]);
+  const [cancellationReasons, setCancellationReasons] = useState([]);
   const [newRule, setNewRule] = useState({
     reason: "",
     planType: "",
@@ -39,9 +18,13 @@ const RuleEditor = () => {
   });
 
   useEffect(() => {
-    const stored = localStorage.getItem("retentionRules");
-    if (stored) setRules(JSON.parse(stored));
+    const storedRules = localStorage.getItem("retentionRules");
+    if (storedRules) setRules(JSON.parse(storedRules));
     else setRules(defaultRules);
+
+    const storedReasons = localStorage.getItem("cancellationReasons");
+    if (storedReasons) setCancellationReasons(JSON.parse(storedReasons));
+    else setCancellationReasons([]);
   }, []);
 
   const saveToLocalStorage = (updatedRules) => {
@@ -104,13 +87,17 @@ const RuleEditor = () => {
 
       {/* Formulário de adição */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-        <input
-          type="text"
-          placeholder="Motivo (opcional)"
+        <select
           className="p-2 rounded bg-gray-900 border border-gray-700"
           value={newRule.reason}
           onChange={e => setNewRule({ ...newRule, reason: e.target.value })}
-        />
+        >
+          <option value="">Selecione o motivo (opcional)</option>
+          {cancellationReasons.map((r, idx) => (
+            <option key={idx} value={r.reason}>{r.reason}</option>
+          ))}
+        </select>
+
         <select
           className="p-2 rounded bg-gray-900 border border-gray-700"
           value={newRule.planType}
@@ -119,6 +106,7 @@ const RuleEditor = () => {
           <option value="">Tipo de plano (qualquer)</option>
           {planTypes.map(pt => <option key={pt} value={pt}>{pt}</option>)}
         </select>
+
         <select
           className="p-2 rounded bg-gray-900 border border-gray-700"
           value={newRule.planCategory}
@@ -127,6 +115,7 @@ const RuleEditor = () => {
           <option value="">Categoria (qualquer)</option>
           {planCategories.map(pc => <option key={pc} value={pc}>{pc}</option>)}
         </select>
+
         <select
           className="p-2 rounded bg-gray-900 border border-gray-700"
           value={newRule.provider}
@@ -187,7 +176,7 @@ const RuleEditor = () => {
         </label>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default RuleEditor;

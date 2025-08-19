@@ -2,6 +2,7 @@ import './reset.css'
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import CancelationTree from './CancelationTree/index'
 import Editor from './Editor.jsx'
+import ReasonsEditor from './ReasonsEditor.jsx'
 
 function App() {
 
@@ -28,16 +29,16 @@ function App() {
   return (
     <Router>
       <div className='App min-h-screen bg-black text-white flex flex-col items-center'>
-        {/* Header */}
+        {/* Cabeçalho */}
         <header
           id="header"
           className="w-full bg-gray-800 shadow-md py-6 flex flex-col items-center"
         >
           <h1 className='text-4xl font-extrabold tracking-wide text-white'>
-            Cancelation Wizard
+            Assistente de Cancelamento
           </h1>
           <p className="text-gray-300 mt-2 text-center max-w-xl">
-            Ferramenta para auxiliar retenções de clientes e sugerir ações com base no plano e motivo.
+            Ferramenta para auxiliar retenções de clientes e sugerir ações com base no plano e no motivo.
           </p>
 
           {/* Navegação */}
@@ -46,32 +47,38 @@ function App() {
               to="/"
               className="text-white hover:text-gray-300 font-medium transition"
             >
-              Home
+              Início
             </Link>
             <Link
               to="/editor"
               className="text-white hover:text-gray-300 font-medium transition"
             >
-              Editor
+              Editor de regras
             </Link>
-             <label className="text-white hover:text-gray-300 font-medium transition cursor-pointer">
-            Carregar arquivo
-            <input
-              type="file"
-              onChange={handleFileLoad}
-              accept=".json"
-              className="hidden" // esconde o input real
+            <Link
+              to="/reasons"
+              className="text-white hover:text-gray-300 font-medium transition"
+            >
+              Editor de motivos
+            </Link>
+            <label className="text-white hover:text-gray-300 font-medium transition cursor-pointer">
+              Carregar arquivo
+              <input
+                type="file"
+                onChange={handleFileLoad}
+                accept=".json"
+                className="hidden" // esconde o input real
               />
             </label>
           </nav>
-
         </header>
 
-        {/* Main content */}
+        {/* Conteúdo principal */}
         <main className="flex-grow w-full flex justify-center items-start p-6">
           <Routes>
             <Route path="/" element={<CancelationTree />} />
             <Route path="/editor" element={<Editor />} />
+            <Route path="/reasons" element={<ReasonsEditor />} />
           </Routes>
         </main>
       </div>
