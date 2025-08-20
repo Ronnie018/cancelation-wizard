@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
-// Tipos de planos, categorias e providers
 const planTypes = ["Básico", "Padrão", "Platinum"];
 const planCategories = ["Mensal", "Anual"];
 const providers = ["DTC", "IAP", "Provider"];
@@ -14,32 +13,34 @@ const ReasonWizard = ({ reason, cleanState }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [reasonDetails, setReasonDetails] = useState("");
 
+  const [inputText, setInputText] = useState("");
+  const [ghostText, setGhostText] = useState("");
+  const textareaRef = useRef(null);
+
   useEffect(() => {
-    // carregar regras
     const storedRules = localStorage.getItem("retentionRules");
     if (storedRules) setRules(JSON.parse(storedRules));
 
-    // carregar detalhes do motivo
     const storedReasons = localStorage.getItem("cancellationReasons");
     if (storedReasons) {
       const parsed = JSON.parse(storedReasons);
-      const found = parsed.find(r => r.reason === reason);
+      const found = parsed.find((r) => r.reason === reason);
       setReasonDetails(found?.details || "");
     }
   }, [reason]);
 
-
   useEffect(() => {
     if (step === 3) {
       const filtered = rules
-        .filter(rule => {
+        .filter((rule) => {
           const reasonMatch = !rule.reason || rule.reason === reason;
           const typeMatch = !rule.planType || rule.planType === planType;
-          const categoryMatch = !rule.planCategory || rule.planCategory === planCategory;
+          const categoryMatch =
+            !rule.planCategory || rule.planCategory === planCategory;
           const providerMatch = !rule.provider || rule.provider === provider;
           return reasonMatch && typeMatch && categoryMatch && providerMatch;
         })
-        .map(rule => {
+        .map((rule) => {
           if (
             rule.suggestion.toLowerCase().includes("código promocional") &&
             provider !== "DTC"
@@ -61,24 +62,58 @@ const ReasonWizard = ({ reason, cleanState }) => {
         : "bg-black border-gray-700 text-gray-200 hover:bg-gray-700 hover:text-white"
     }`;
 
+  const handleInput = (e) => {
+    const value = e.target.value;
+    setInputText(value);
+
+    if (suggestions.length === 0) {
+      setGhostText("");
+      return;
+    }
+
+    const cursorPos = e.target.selectionStart;
+    const textUpToCursor = value.substring(0, cursorPos);
+    const lastWord = textUpToCursor.split(/\s+/).pop().toLowerCase();
+
+    const match = suggestions.find((s) =>
+      s.toLowerCase().startsWith(lastWord)
+    );
+
+    if (match && lastWord.length > 0) {
+      setGhostText(value + match.substring(lastWord.length));
+    } else {
+      setGhostText("");
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Tab" && ghostText) {
+      e.preventDefault();
+      setInputText(ghostText);
+      setGhostText("");
+      setTimeout(() => {
+        textareaRef.current.selectionStart = textareaRef.current.value.length;
+        textareaRef.current.selectionEnd = textareaRef.current.value.length;
+      }, 0);
+    }
+  };
+
   return (
     <div className="bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-3xl text-white space-y-6">
       <h2 className="text-2xl font-bold text-white">Retention Wizard</h2>
 
-      {/* Observação do motivo */}
       {reason && (
         <>
-
-        <p className="text-lg font-semibold text-blue-200">
+          <p className="text-lg font-semibold text-blue-200">
             Motivo: <span className="text-white">{reason}</span>
           </p>
 
           {reasonDetails && (
             <div className="bg-yellow-200 p-4 rounded-lg text-gray-800 break-words whitespace-pre-wrap max-w-full">
-              {reasonDetails}
+              {reasonDetails.replace(/\\n/g, "\n")}
             </div>
           )}
-          </>
+        </>
       )}
 
       {step === 0 && (
@@ -161,17 +196,20 @@ const ReasonWizard = ({ reason, cleanState }) => {
             <strong>Provider:</strong> {provider}
           </p>
 
-          <div className="bg-black p-4 rounded-lg space-y-2">
-            <p className="font-semibold">Sugestões de retenção:</p>
-            {suggestions.length > 0 ? (
-              <ul className="list-disc list-inside space-y-1">
-                {suggestions.map((opt, idx) => (
-                  <li key={idx}>{opt}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-400">Nenhuma sugestão disponível.</p>
-            )}
+          <div className="relative bg-black p-4 rounded-lg">
+            <p className="font-semibold mb-2">Sugestões de retenção:</p>
+            <div className="relative w-full h-40">
+              <textarea
+                ref={textareaRef}
+                value={inputText}
+                onChange={handleInput}
+                onKeyDown={handleKeyDown}
+                className="absolute top-0 left-0 w-full h-full p-2 rounded-lg bg-transparent text-white resize-none z-10"
+              />
+              <div className="absolute top-0 left-0 w-full h-full p-2 rounded-lg text-gray-500 whitespace-pre-wrap pointer-events-none z-0">
+                {ghostText || inputText}
+              </div>
+            </div>
           </div>
 
           <button
@@ -180,6 +218,8 @@ const ReasonWizard = ({ reason, cleanState }) => {
               cleanState();
               setStep(0);
               setProvider("");
+              setInputText("");
+              setGhostText("");
             }}
           >
             Reiniciar Wizard
