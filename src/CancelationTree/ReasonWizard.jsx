@@ -214,22 +214,7 @@ const ReasonWizard = ({ reason, cleanState }) => {
             )}
           </div>
 
-          {/* Campo de texto com autocomplete */}
-          <div className="relative bg-black p-4 rounded-lg">
-            <p className="font-semibold mb-2">Digite sua resposta:</p>
-            <div className="relative w-full h-40">
-              <textarea
-                ref={textareaRef}
-                value={inputText}
-                onChange={handleInput}
-                onKeyDown={handleKeyDown}
-                className="absolute top-0 left-0 w-full h-full p-2 rounded-lg bg-transparent text-white resize-none z-10"
-              />
-              <div className="absolute top-0 left-0 w-full h-full p-2 rounded-lg text-gray-500 whitespace-pre-wrap pointer-events-none z-0">
-                {ghostText || inputText}
-              </div>
-            </div>
-          </div>
+    
 
           <button
             className="w-full px-4 py-2 rounded-lg bg-gray-900 text-white border border-gray-700 hover:bg-gray-700 transition font-medium"
