@@ -17,6 +17,7 @@ const ReasonWizard = ({ reason, cleanState }) => {
   const [ghostText, setGhostText] = useState("");
   const textareaRef = useRef(null);
 
+  // Carregar regras e detalhes do motivo
   useEffect(() => {
     const storedRules = localStorage.getItem("retentionRules");
     if (storedRules) setRules(JSON.parse(storedRules));
@@ -29,6 +30,7 @@ const ReasonWizard = ({ reason, cleanState }) => {
     }
   }, [reason]);
 
+  // Filtrar sugestões de acordo com as escolhas
   useEffect(() => {
     if (step === 3) {
       const filtered = rules
@@ -116,6 +118,7 @@ const ReasonWizard = ({ reason, cleanState }) => {
         </>
       )}
 
+      {/* Etapas */}
       {step === 0 && (
         <div className="space-y-3">
           <p>Selecione o tipo de plano:</p>
@@ -184,6 +187,7 @@ const ReasonWizard = ({ reason, cleanState }) => {
         </div>
       )}
 
+      {/* Etapa final */}
       {step === 3 && (
         <div className="space-y-4">
           <p>
@@ -196,8 +200,23 @@ const ReasonWizard = ({ reason, cleanState }) => {
             <strong>Provider:</strong> {provider}
           </p>
 
-          <div className="relative bg-black p-4 rounded-lg">
+          {/* Lista de sugestões pré-carregadas */}
+          <div className="bg-gray-900 p-4 rounded-lg space-y-2">
             <p className="font-semibold mb-2">Sugestões de retenção:</p>
+            {suggestions.length > 0 ? (
+              <ul className="list-disc pl-5 text-gray-300 space-y-1">
+                {suggestions.map((s, i) => (
+                  <li key={i}>{s}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500 italic">Nenhuma sugestão encontrada.</p>
+            )}
+          </div>
+
+          {/* Campo de texto com autocomplete */}
+          <div className="relative bg-black p-4 rounded-lg">
+            <p className="font-semibold mb-2">Digite sua resposta:</p>
             <div className="relative w-full h-40">
               <textarea
                 ref={textareaRef}
@@ -231,3 +250,4 @@ const ReasonWizard = ({ reason, cleanState }) => {
 };
 
 export default ReasonWizard;
+    
